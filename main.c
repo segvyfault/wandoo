@@ -250,7 +250,7 @@ void editTask(int id, int parent, char* pretext, int mode)
 
   int tbw = w - 5;
   int maxlen = tbw - 4;
-  char buffer[maxlen + 1];
+  char buffer[512];
   memset(buffer, 0, sizeof(buffer));
 
   int cursor = 0;
@@ -273,14 +273,33 @@ void editTask(int id, int parent, char* pretext, int mode)
 
   int ch;
   while (1) {
-    if (cursor < 0) cursor = 0;
-    if (cursor > strlen(buffer)) cursor = strlen(buffer);
+        int len = strlen(buffer);
 
-    mvwprintw(popup, 3, 4, "%-*s", maxlen, buffer);
-    wmove(popup, 3, 4 + cursor);
+    if (cursor < 0) cursor = 0;
+    if (cursor > len) cursor = len;
+
+    int view_start;
+    
+    if (cursor > maxlen) {
+        view_start = cursor - maxlen;
+    } else {
+        view_start = 0;
+    }
+
+    int cx = cursor - view_start;
+
+    mvwprintw(popup, 3, 4, "%-*s", maxlen, "");
+
+    mvwprintw(popup, 3, 4, "%.*s",
+        maxlen,
+        buffer + view_start);
+
+
+    wmove(popup, 3, 4 + cx);
+
     wrefresh(popup);
 
-    ch = wgetch(popup);
+    ch = wgetch(popup); 
 
     if (ch == 10 || ch == KEY_ENTER) break;
     else if (ch == KEY_LEFT && cursor > 0) cursor--;
@@ -296,7 +315,7 @@ void editTask(int id, int parent, char* pretext, int mode)
       curs_set(0);
       return; 
     }
-    else if (ch >= 32 && ch <= 126 && strlen(buffer) < maxlen) {
+    else if (ch >= 32 && ch <= 126) {
       memmove(&buffer[cursor+1], &buffer[cursor], strlen(buffer) - cursor + 1);
       buffer[cursor] = ch;
       cursor++;
@@ -332,10 +351,10 @@ void editTask(int id, int parent, char* pretext, int mode)
 
     tasks[id] = (Task){
       .task = strdup(buffer),
-        .parent = parent,
-        .childCount = 0,
-        .children = NULL,
-        .complete = 0x00
+      .parent = parent,
+      .childCount = 0,
+      .children = NULL,
+      .complete = 0x00
     };
 
     taskCount++;
