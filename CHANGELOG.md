@@ -1,11 +1,12 @@
-# wandoo 1.0.3 (Future Release)
-fixes a lot of issues caused by hard coding. 
+# wandoo 1.0.3
+fixes a lot of issues caused by hard coding making the software just a bit more comfortable to use. 
 
 ## Fixes:
-- Terminal scaling breaks ncurses #8 by @blobii
+- Terminal scaling breaks ncurses #8 by @realblobii
 
 ## Adds:
-- Version flag for QoL #6 by @blobii
+- Version flag for QoL #6 by @realblobii
+- Scrolling textbox allowing longer names #5 by @realblobii
 
 # wandoo 1.0.2
 first 'proper update'
