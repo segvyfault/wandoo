@@ -32,3 +32,7 @@ Run `./build.sh` and `build/wandoo <filename>` to build/run.
 ## licensing
 
 Licensed under GPLv3 or later. 
+
+## misc
+
+See [changelog](CHANGELOG.md).
