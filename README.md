@@ -10,20 +10,13 @@ technically project management software but its like 600 lines of code..
 
 its pretty simple, that's good. i'm following the unix philosophy.
 
-## how to use 
-
-- space to check or uncheck a task.
-- enter to edit a task.
-- delete to delete a task.
-- `+` opens an add task dialog to create a new task.
-- `w` writes the file with the latest changes. 
-- `q` quits.
-
 ## contributing
 
 add a pull request and ill look over it. 
 
-if you get a bug please just make an issue with a screenshot or logs.
+if you get a bug please just make an issue with a screenshot or logs. 
+
+if you think something would be cool or a limitation of the software annoys you, also feel free to open an issue!
 
 ## installing
 
