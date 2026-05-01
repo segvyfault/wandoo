@@ -228,7 +228,7 @@ int printTasks(int highlight)
 
 void editTask(int id, int parent, char* pretext, int mode)
 {
-  int h = 7, w = 75;
+  int h = 7, w = COLS / 2;
   int y = (LINES - h) / 2;
   int x = (COLS - w) / 2;
 
