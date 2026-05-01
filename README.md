@@ -27,9 +27,10 @@ if you get a bug please just make an issue with a screenshot or logs.
 
 ## installing
 
-### aur
+[![Packaging status](https://repology.org/badge/vertical-allrepos/wandoo.svg)](https://repology.org/project/wandoo/versions)
 
-[https://aur.archlinux.org/packages/wandoo](https://aur.archlinux.org/packages/wandoo)
+### aur
+`yay -S wandoo` or `paru -S wandoo`
 
 ### compiling
 
