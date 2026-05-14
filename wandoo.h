@@ -1,5 +1,11 @@
 #pragma once
 
+// DEFINITIONS
+#define INPUT_KEY_ESCAPE 27
+#define INPUT_KEY_ENTER  10
+#define INPUT_KEY_SPACE  32
+#define INPUT_KEY_DELETE 330
+
 // INCLUDES
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,6 +26,7 @@ Task* tasks;
 int taskCount;
 char* curFileName;
 
+bool unsavedChanges = false;
 
 int c;
 int curIndex;
@@ -29,6 +36,8 @@ int visibleTasks;
 // FUNCTION DECLARATIONS
 
 void help();
+
+bool unsavedChangesWindow();
 
 void removeChildFromParent(int childId);
 

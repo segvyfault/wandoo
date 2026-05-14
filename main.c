@@ -1,5 +1,6 @@
 #include "wandoo.h"
 #include "meta.h"
+#include <ncurses.h>
 
 int highlight = 1;
 char* helpmsg =
@@ -79,18 +80,28 @@ int main(int argc, char* argv[])
   while (1)
   {
     clear();
-    int width = COLS;           
-    attron(A_REVERSE);         
-    mvhline(0, 0, ' ', width); 
+    int width = COLS;
+    attron(A_REVERSE);
+    mvhline(0, 0, ' ', width);
     mvprintw(0, 0, " wandoo %s - editing '%s'", WANDOO_VER, curFileName);
-    mvprintw(LINES-1, 0, " need help using wandoo? press h for a list of keybinds", WANDOO_VER, curFileName);
-    attroff(A_REVERSE);        
+    mvprintw(LINES-1, 0, " need help using wandoo? press h for a list of keybinds");
+    attroff(A_REVERSE);
     visibleTasks = printTasks(highlight);
     refresh();
 
     curIndex = 0;
     highlightedID = getTaskIDByHighlight(highlight, &curIndex, 0);
     c = getch();
+
+#ifdef WANDOO_DEBUG_PRINT
+  {
+    char *buffer = malloc(32);
+    sprintf(buffer, "key = %d", c);
+    debugPrint(buffer);
+    free(buffer);
+  }
+#endif /* WANDOO_DEBUG_PRINT */
+
     switch(c)
     {
       case KEY_UP:
@@ -101,26 +112,28 @@ int main(int argc, char* argv[])
         highlight++;
         if (highlight > visibleTasks) highlight = 1;
         break;
-      case 32: 
+      case INPUT_KEY_SPACE:
         tasks[highlightedID].complete ^= 0x01;
+        unsavedChanges = true;
         break;
       case '+':
         editTask(taskCount, highlightedID, "new", 0);
         break;
-      case 10: 
+      case INPUT_KEY_ENTER:
         editTask(highlightedID, tasks[highlightedID].parent, tasks[highlightedID].task, 1);
         break;
       case 'w':
         saveFile(curFileName);
         break;
-      case 330:
+      case INPUT_KEY_DELETE:
         editTask(highlightedID, 0, "", 2);
         break;
       case 'h':
         help();
         break;
       case 'q':
-        goto cleanup;
+        if (!unsavedChanges || unsavedChangesWindow() == true)
+            goto cleanup;
     }
   }
 
@@ -164,7 +177,7 @@ void help()
     int x = (COLS - w) / 2;
 
     WINDOW *popup = newwin(h, w, y, x);
-    box(popup, 0, 0);       
+    box(popup, 0, 0);
     keypad(popup, TRUE);
 
     // Example content
@@ -176,10 +189,40 @@ void help()
     mvwprintw(popup, 7, 2, "w     : Save file");
     mvwprintw(popup, 8, 2, "q     : Exit");
 
-    wrefresh(popup);        
-    getch();                
+    wrefresh(popup);
+    getch();
 
-    delwin(popup);          
+    delwin(popup);
+}
+
+bool unsavedChangesWindow()
+{
+    int h = 5, w = 40;
+    int y = (LINES - h) / 2;
+    int x = (COLS - w) / 2;
+
+    WINDOW *popup = newwin(h, w, y, x);
+    box(popup, 0, 0);
+    keypad(popup, true);
+
+    mvwprintw(popup, 1, 5, "Are you sure you wanna leave?");
+    mvwprintw(popup, 2, 14, "[Y]es/[N]o");
+
+    wrefresh(popup);
+    int y_or_n = getch();
+
+    switch (y_or_n) {
+        case 'y':
+            delwin(popup);
+            return true;
+
+        case INPUT_KEY_ESCAPE:
+        case 'n':
+            delwin(popup);
+            return false;
+    }
+
+    return false;
 }
 
 void printTaskRecursive(int id, int highlight, int x, int *y, int depth, int *currentIndex)
@@ -208,7 +251,7 @@ void printTaskRecursive(int id, int highlight, int x, int *y, int depth, int *cu
 void recurseDelete(int id)
 {
   removeChildFromParent(id);
-  tasks[id].parent = -2; 
+  tasks[id].parent = -2;
   if (tasks[id].childCount > 0)
   {
     for (int i = 0; i < tasks[id].childCount; i++)
@@ -235,6 +278,7 @@ void editTask(int id, int parent, char* pretext, int mode)
   if (mode == 2)
   {
     recurseDelete(id);
+    unsavedChanges = true;
     return;
   }
   WINDOW *popup = newwin(h, w, y, x);
@@ -273,13 +317,13 @@ void editTask(int id, int parent, char* pretext, int mode)
 
   int ch;
   while (1) {
-        int len = strlen(buffer);
+    int len = strlen(buffer);
 
     if (cursor < 0) cursor = 0;
     if (cursor > len) cursor = len;
 
     int view_start;
-    
+
     if (cursor > maxlen) {
         view_start = cursor - maxlen;
     } else {
@@ -299,7 +343,7 @@ void editTask(int id, int parent, char* pretext, int mode)
 
     wrefresh(popup);
 
-    ch = wgetch(popup); 
+    ch = wgetch(popup);
 
     if (ch == 10 || ch == KEY_ENTER) break;
     else if (ch == KEY_LEFT && cursor > 0) cursor--;
@@ -308,7 +352,7 @@ void editTask(int id, int parent, char* pretext, int mode)
       memmove(&buffer[cursor-1], &buffer[cursor], strlen(buffer) - cursor + 1);
       cursor--;
     }
-    else if (ch == 27)
+    else if (ch == INPUT_KEY_ESCAPE)
     {
       delwin(popup);
       noecho();
@@ -368,8 +412,7 @@ void editTask(int id, int parent, char* pretext, int mode)
     }
   }
 
-
-
+  unsavedChanges = true;
   delwin(popup);
 }
 
@@ -411,6 +454,7 @@ void saveFile(char* name)
       fwrite(tasks[i].children, sizeof(int), tasks[i].childCount, file);
   }
 
+  unsavedChanges = false;
   fclose(file);
 }
 
